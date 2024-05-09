@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Table, Button, Spin, Space, Checkbox } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useGetUsersQuery, User } from '../services/userApi';
+import { useGetUsersQuery, User, useDeleteUserMutation } from '../services/userApi';
 import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { setUsers, deleteUser as deleteUserAction } from '../features/deleteSlice';
 
 const UserTable: React.FC = () => {
-  let navigate = useNavigate();
-  const { data: users, error, isLoading } = useGetUsersQuery();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const users = useAppSelector((state) => state.user.users);
+  const { data, error, isLoading } = useGetUsersQuery();
+  const [deleteUser] = useDeleteUserMutation();
+ 
+  useEffect(() => {
+    if (data) {
+      dispatch(setUsers(data));
+    }
+  }, [data, dispatch]);
 
   if (isLoading) return <Spin size="large" />;
   if (error) return <div>Ошибка загрузки данных</div>;
@@ -40,13 +51,20 @@ const UserTable: React.FC = () => {
     navigate(`edit/${id}`);
   };
 
-  const handleDelete = (id: number) => {
-    console.log('Delete user with ID:', id);
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteUser(id).unwrap();
+      dispatch(deleteUserAction(id));
+      console.log('User deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete user', error);
+    }
   };
 
   return (
-    <div className="h-screen mr-40 mt-20 flex justify-center">
-      <Table dataSource={users} columns={columns} className="w-1/2" rowKey="id" />
+    <div>
+      <span>Here you can see UserList</span>
+      <Table dataSource={users} columns={columns} rowKey="id" />
     </div>
   );
 };
