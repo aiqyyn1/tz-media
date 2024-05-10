@@ -6,6 +6,7 @@ import { useGetUsersQuery, User, useDeleteUserMutation } from '../services/userA
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setUsers, deleteUser as deleteUserAction } from '../features/deleteSlice';
+import AddUserForm from './AddUserForm';
 
 const UserTable: React.FC = () => {
   const navigate = useNavigate();
@@ -33,14 +34,13 @@ const UserTable: React.FC = () => {
     { title: 'Имя', dataIndex: 'name', key: 'name' },
     { title: 'Фамилия', dataIndex: 'username', key: 'username' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Навыки', dataIndex: 'phone', key: 'phone' },
-    { title: 'Дата регистрации', dataIndex: 'website', key: 'website' },
+    { title: 'Телефон', dataIndex: 'phone', key: 'phone' },
+    { title: 'Город', dataIndex: ['address', 'city'], key: 'address.city' },
     {
       title: 'Действия',
       key: 'actions',
       render: (_, user) => (
         <Space size="middle">
-           <Button icon={<UserAddOutlined/>}></Button>
           <Button icon={<EditOutlined />} onClick={() => handleEdit(user.id)} />
           <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(user.id)} />
         </Space>
@@ -64,10 +64,11 @@ const UserTable: React.FC = () => {
 
   return (
     <div>
-      <div className='flex justify-center'>
-        <span className='font-bold text-xl'>Here you can see UserList</span>
+      <div className="flex justify-center">
+        <span className="font-bold text-xl">Here you can see UserList</span>
       </div>
-      <Table dataSource={users} columns={columns} className='mt-10' rowKey="id" />
+      <AddUserForm />
+      <Table dataSource={users} columns={columns} className="mt-10" rowKey="id" />
     </div>
   );
 };

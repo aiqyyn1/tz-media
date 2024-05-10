@@ -1,22 +1,22 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export interface User {
-  id: number;
+  id?: number;
   name: string;
   username: string;
   email: string;
   address: {
-    street: string;
-    suite: string;
+    street?: string;
+    suite?: string;
     city: string;
-    zipcode: string;
+    zipcode?: string;
   };
-  phone: string;
-  website: string;
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
+  phone: { label: number; value: string }[];
+  website?: string;
+  company?: {
+    name?: string;
+    catchPhrase?: string;
+    bs?: string;
   };
 }
 
@@ -33,7 +33,17 @@ export const userApi = createApi({
         method: 'DELETE',
       }),
     }),
+    createUser: builder.mutation<User, User>({
+      query: (user) => ({
+        url: 'users',
+        method: 'POST',
+        body: {
+          ...user,
+          phone: user.phone.map(p => `${p.label} ${p.value}`).join(', '), // format phone numbers as a single string
+        },
+      }),
+    }),
   }),
 });
 
-export const { useGetUsersQuery, useDeleteUserMutation } = userApi;
+export const { useGetUsersQuery, useDeleteUserMutation, useCreateUserMutation } = userApi;
