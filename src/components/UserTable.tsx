@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { Table, Button, Spin, Space, Checkbox } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { EditOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useGetUsersQuery, User, useDeleteUserMutation } from '../services/userApi';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { setUsers, deleteUser as deleteUserAction } from '../features/deleteSlice';
+import { setUsers, deleteUser as deleteUserAction } from '../features/userSlice';
 import AddUserForm from './AddUserForm';
 
 const UserTable: React.FC = () => {
@@ -34,7 +34,24 @@ const UserTable: React.FC = () => {
     { title: 'Имя', dataIndex: 'name', key: 'name' },
     { title: 'Фамилия', dataIndex: 'username', key: 'username' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
-    { title: 'Телефон', dataIndex: 'phone', key: 'phone' },
+    {
+      title: 'Телефон',
+      dataIndex: 'phone',
+      key: 'phone',
+      render: (phone) => (
+        <div className="flex flex-col">
+          {Array.isArray(phone) ? (
+            phone.map((number, index) => (
+              <span key={index}>
+                {index + 1}. {number}
+              </span>
+            ))
+          ) : (
+            <span>{phone}</span>
+          )}
+        </div>
+      ),
+    },
     { title: 'Город', dataIndex: ['address', 'city'], key: 'address.city' },
     {
       title: 'Действия',
@@ -69,6 +86,7 @@ const UserTable: React.FC = () => {
       </div>
       <AddUserForm />
       <Table dataSource={users} columns={columns} className="mt-10" rowKey="id" />
+  
     </div>
   );
 };

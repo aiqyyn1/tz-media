@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { Modal, Button, Input, Space, Form } from 'antd';
-import { useAppDispatch } from '../hooks';
+import { useAppDispatch, useAppSelector } from '../hooks';
 import { UserAddOutlined } from '@ant-design/icons';
-import { createUser } from '../features/deleteSlice';
+import { createUser, setIsPhoneArray } from '../features/userSlice';
 import { User } from '../services/userApi';
 
 const AddUserForm: React.FC = () => {
   const dispatch = useAppDispatch();
   const [visible, setVisible] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -19,7 +20,7 @@ const AddUserForm: React.FC = () => {
       name: '',
       username: '',
       email: '',
-      phone: [{ label: 1, value: '' }],
+      phone: [''],
       address: { city: '' },
     },
   });
@@ -29,28 +30,23 @@ const AddUserForm: React.FC = () => {
   });
 
   const onSubmit = (data: User) => {
-    console.log(data)
     dispatch(createUser(data));
     reset();
     setVisible(false);
+    dispatch(setIsPhoneArray(true));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Enter') {
-      e.preventDefault(); // to avoid form submission on enter
-      control._formState.updateFormState(state => {
-        if (index === state.phone.length - 1) {
-          append({ label: state.phone.length + 1, value: '' });
-        }
-      });
-    }
+  const handleAddPhone = () => {
+    append('');
   };
-  
+
   return (
     <>
-      <Button type="primary" icon={<UserAddOutlined />} onClick={() => setVisible(true)}>
-        Add User
-      </Button>
+      <div className="flex justify-end mr-5">
+        <Button type="primary" icon={<UserAddOutlined />} onClick={() => setVisible(true)}>
+          Add User
+        </Button>
+      </div>
       <Modal title="Add User" visible={visible} onCancel={() => setVisible(false)} footer={null}>
         <Form onFinish={handleSubmit(onSubmit)}>
           <Form.Item
@@ -95,22 +91,34 @@ const AddUserForm: React.FC = () => {
           <Form.Item label="Phone">
             {fields.map((field, index) => (
               <Space key={field.id} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                <Input value={index + 1} readOnly style={{ width: 50 }} />
+                <Input
+                  readOnly
+                  value={index + 1}
+                  style={{ width: 30, marginRight: 8, textAlign: 'center' }}
+                />
                 <Controller
-                  name={`phone.${index}.value`}
+                  name={`phone.${index}`}
                   control={control}
                   render={({ field }) => (
-                    <Input {...field} onKeyPress={(e) => handleKeyPress(e, index)} />
+                    <Input
+                      {...field}
+                      onPressEnter={(e) => {
+                        e.preventDefault(); // Prevent form submission
+                        if (index === fields.length - 1) {
+                          handleAddPhone();
+                        }
+                      }}
+                    />
                   )}
                 />
-                {fields.length > 1 && (
+                {fields.length >= 1 && (
                   <Button type="dashed" onClick={() => remove(index)}>
                     Remove
                   </Button>
                 )}
               </Space>
             ))}
-            <Button type="dashed" onClick={() => append({ label: fields.length + 1, value: '' })}>
+            <Button type="dashed" onClick={handleAddPhone}>
               Add Phone
             </Button>
           </Form.Item>
