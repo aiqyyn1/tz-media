@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Table, Button, Spin, Space, Checkbox } from 'antd';
 import { ColumnsType } from 'antd/es/table';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useGetUsersQuery, User, useDeleteUserMutation } from '../services/userApi';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks';
@@ -13,7 +13,7 @@ const UserTable: React.FC = () => {
   const users = useAppSelector((state) => state.user.users);
   const { data, error, isLoading } = useGetUsersQuery();
   const [deleteUser] = useDeleteUserMutation();
- 
+
   useEffect(() => {
     if (data) {
       dispatch(setUsers(data));
@@ -40,6 +40,7 @@ const UserTable: React.FC = () => {
       key: 'actions',
       render: (_, user) => (
         <Space size="middle">
+           <Button icon={<UserAddOutlined/>}></Button>
           <Button icon={<EditOutlined />} onClick={() => handleEdit(user.id)} />
           <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(user.id)} />
         </Space>
@@ -63,8 +64,10 @@ const UserTable: React.FC = () => {
 
   return (
     <div>
-      <span>Here you can see UserList</span>
-      <Table dataSource={users} columns={columns} rowKey="id" />
+      <div className='flex justify-center'>
+        <span className='font-bold text-xl'>Here you can see UserList</span>
+      </div>
+      <Table dataSource={users} columns={columns} className='mt-10' rowKey="id" />
     </div>
   );
 };
