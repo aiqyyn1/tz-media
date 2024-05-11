@@ -30,14 +30,15 @@ const UserTable: React.FC = () => {
       key: 'checkbox',
       render: (_, user) => <Checkbox />,
     },
-    { title: 'ID', dataIndex: 'id', key: 'id' },
+    { title: 'ID', dataIndex: '_id', key: '_id' },
     { title: 'Имя', dataIndex: 'name', key: 'name' },
-    { title: 'Фамилия', dataIndex: 'username', key: 'username' },
+    { title: 'Фамилия', dataIndex: 'surname', key: 'username' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
+    { title: 'День Регистрации', dataIndex: 'registrationDate', key: 'registrationDate' },
     {
-      title: 'Телефон',
-      dataIndex: 'phone',
-      key: 'phone',
+      title: 'Навыки',
+      dataIndex: 'skills',
+      key: 'skills',
       render: (phone) => (
         <div className="flex flex-col">
           {Array.isArray(phone) ? (
@@ -52,14 +53,13 @@ const UserTable: React.FC = () => {
         </div>
       ),
     },
-    { title: 'Город', dataIndex: ['address', 'city'], key: 'address.city' },
     {
       title: 'Действия',
       key: 'actions',
       render: (_, user) => (
         <Space size="middle">
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(user.id)} />
-          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(user.id)} />
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(user._id)} />
+          <Button icon={<DeleteOutlined />} danger onClick={() => handleDelete(user._id)} />
         </Space>
       ),
     },
@@ -86,7 +86,6 @@ const UserTable: React.FC = () => {
       </div>
       <AddUserForm />
       <Table dataSource={users} columns={columns} className="mt-10" rowKey="id" />
-  
     </div>
   );
 };

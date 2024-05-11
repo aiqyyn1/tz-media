@@ -22,7 +22,7 @@ export interface User {
 
 export const userApi = createApi({
   reducerPath: 'userApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://jsonplaceholder.typicode.com/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:3001' }),
   endpoints: (builder) => ({
     getUsers: builder.query<User[], void>({
       query: () => 'users',
@@ -37,13 +37,18 @@ export const userApi = createApi({
       query: (user) => ({
         url: 'users',
         method: 'POST',
-        body: {
-          ...user,
-          phone: user.phone.map(p => `${p.label} ${p.value}`).join(', '), // format phone numbers as a single string
-        },
+        body:user
       }),
+    }),
+    getUserById: builder.query<User, string>({
+      query: (id) => `users/${id}`,
     }),
   }),
 });
 
-export const { useGetUsersQuery, useDeleteUserMutation, useCreateUserMutation } = userApi;
+export const {
+  useGetUsersQuery,
+  useDeleteUserMutation,
+  useCreateUserMutation,
+  useGetUserByIdQuery,
+} = userApi;

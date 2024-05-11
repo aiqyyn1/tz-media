@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { Modal, Button, Input, Space, Form } from 'antd';
-import { useAppDispatch, useAppSelector } from '../hooks';
+import { useAppDispatch } from '../hooks';
 import { UserAddOutlined } from '@ant-design/icons';
 import { createUser, setIsPhoneArray } from '../features/userSlice';
-import { User } from '../services/userApi';
+import { User, useCreateUserMutation } from '../services/userApi';
 
 const AddUserForm: React.FC = () => {
   const dispatch = useAppDispatch();
+  const [postUser] = useCreateUserMutation();
   const [visible, setVisible] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const {
     control,
     handleSubmit,
@@ -18,25 +19,30 @@ const AddUserForm: React.FC = () => {
   } = useForm({
     defaultValues: {
       name: '',
-      username: '',
+      surname: '',
       email: '',
-      phone: [''],
-      address: { city: '' },
+      skills: [''],
     },
   });
+
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'phone',
+    name: 'skills',
   });
 
-  const onSubmit = (data: User) => {
-    dispatch(createUser(data));
-    reset();
-    setVisible(false);
-    dispatch(setIsPhoneArray(true));
+  const onSubmit = async (data: User) => {
+ 
+    try {
+      const response = await postUser(data).unwrap();
+      dispatch(createUser(response)); 
+      reset();
+      setVisible(false);
+    } catch (error) {
+      console.error('Failed to create user:', error);
+    } 
   };
 
-  const handleAddPhone = () => {
+  const handleAddSkill = () => {
     append('');
   };
 
@@ -47,7 +53,7 @@ const AddUserForm: React.FC = () => {
           Add User
         </Button>
       </div>
-      <Modal title="Add User" visible={visible} onCancel={() => setVisible(false)} footer={null}>
+      <Modal title="Add User" open={visible} onCancel={() => setVisible(false)} footer={null}>
         <Form onFinish={handleSubmit(onSubmit)}>
           <Form.Item
             label="Name"
@@ -63,11 +69,11 @@ const AddUserForm: React.FC = () => {
           </Form.Item>
           <Form.Item
             label="Surname"
-            validateStatus={errors.username ? 'error' : ''}
-            help={errors.username ? errors.username.message : ''}
+            validateStatus={errors.surname ? 'error' : ''}
+            help={errors.surname ? errors.surname.message : ''}
           >
             <Controller
-              name="username"
+              name="surname"
               control={control}
               rules={{ required: 'Surname is required' }}
               render={({ field }) => <Input {...field} />}
@@ -88,7 +94,7 @@ const AddUserForm: React.FC = () => {
               render={({ field }) => <Input {...field} />}
             />
           </Form.Item>
-          <Form.Item label="Phone">
+          <Form.Item label="Skills">
             {fields.map((field, index) => (
               <Space key={field.id} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
                 <Input
@@ -97,42 +103,27 @@ const AddUserForm: React.FC = () => {
                   style={{ width: 30, marginRight: 8, textAlign: 'center' }}
                 />
                 <Controller
-                  name={`phone.${index}`}
+                  name={`skills.${index}`}
                   control={control}
                   render={({ field }) => (
                     <Input
                       {...field}
                       onPressEnter={(e) => {
-                        e.preventDefault(); // Prevent form submission
-                        if (index === fields.length - 1) {
-                          handleAddPhone();
-                        }
+                        e.preventDefault();
                       }}
                     />
                   )}
                 />
-                {fields.length >= 1 && (
+                {fields.length > 1 && (
                   <Button type="dashed" onClick={() => remove(index)}>
                     Remove
                   </Button>
                 )}
               </Space>
             ))}
-            <Button type="dashed" onClick={handleAddPhone}>
-              Add Phone
+            <Button type="dashed" onClick={handleAddSkill}>
+              Add Skill
             </Button>
-          </Form.Item>
-          <Form.Item
-            label="City"
-            validateStatus={errors.address?.city ? 'error' : ''}
-            help={errors.address?.city ? errors.address.city.message : ''}
-          >
-            <Controller
-              name="address.city"
-              control={control}
-              rules={{ required: 'City is required' }}
-              render={({ field }) => <Input {...field} />}
-            />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
