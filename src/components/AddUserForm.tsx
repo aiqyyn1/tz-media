@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { Modal, Button, Input, Space, Form } from 'antd';
 import { useAppDispatch } from '../hooks';
 import { UserAddOutlined } from '@ant-design/icons';
-import { createUser, setIsPhoneArray } from '../features/userSlice';
-import { User, useCreateUserMutation } from '../services/userApi';
+import { createUser, updateUser } from '../features/userSlice';
+import { useCreateUserMutation, useChangeByIdMutation } from '../services/userApi';
+import { User } from '../types/User';
+interface AddUserFormProps {
+  user?: User;
+  onClose: () => void;
+}
 
-const AddUserForm: React.FC = () => {
+const AddUserForm: React.FC<AddUserFormProps> = ({ user, onClose }) => {
   const dispatch = useAppDispatch();
   const [postUser] = useCreateUserMutation();
+  const [updateUserById] = useChangeByIdMutation();
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm({
+    setValue,
+  } = useForm<User>({
     defaultValues: {
       name: '',
       surname: '',
@@ -25,21 +33,39 @@ const AddUserForm: React.FC = () => {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<User>({
     control,
     name: 'skills',
   });
 
+  useEffect(() => {
+    if (user) {
+      setValue('name', user.name);
+      setValue('surname', user.surname);
+      setValue('email', user.email);
+      setValue('skills', user.skills || ['']);
+      setVisible(true);
+    }
+  }, [user, setValue]);
+
   const onSubmit = async (data: User) => {
- 
+    setLoading(true);
     try {
-      const response = await postUser(data).unwrap();
-      dispatch(createUser(response)); 
+      if (user && user._id) {
+        const response = await updateUserById({ id: user._id, user: data }).unwrap();
+        dispatch(updateUser(response));
+      } else {
+        const response = await postUser(data).unwrap();
+        dispatch(createUser(response));
+      }
       reset();
       setVisible(false);
+      onClose();
     } catch (error) {
-      console.error('Failed to create user:', error);
-    } 
+      console.error('Failed to save user:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddSkill = () => {
@@ -49,11 +75,21 @@ const AddUserForm: React.FC = () => {
   return (
     <>
       <div className="flex justify-end mr-5">
-        <Button type="primary" icon={<UserAddOutlined />} onClick={() => setVisible(true)}>
-          Add User
-        </Button>
+        {!user && (
+          <Button type="primary" icon={<UserAddOutlined />} onClick={() => setVisible(true)}>
+            Add User
+          </Button>
+        )}
       </div>
-      <Modal title="Add User" open={visible} onCancel={() => setVisible(false)} footer={null}>
+      <Modal
+        title={user ? 'Edit User' : 'Add User'}
+        open={visible}
+        onCancel={() => {
+          setVisible(false);
+          onClose();
+        }}
+        footer={null}
+      >
         <Form onFinish={handleSubmit(onSubmit)}>
           <Form.Item
             label="Name"
@@ -126,7 +162,7 @@ const AddUserForm: React.FC = () => {
             </Button>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={loading}>
               Submit
             </Button>
           </Form.Item>

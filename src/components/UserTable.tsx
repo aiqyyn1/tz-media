@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { Table, Button, Spin, Space, Checkbox } from 'antd';
 import { ColumnsType } from 'antd/es/table';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { useGetUsersQuery, User, useDeleteUserMutation } from '../services/userApi';
+import { useGetUsersQuery, useDeleteUserMutation } from '../services/userApi';
+import { User } from '../types/User';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { setUsers, deleteUser as deleteUserAction } from '../features/userSlice';
@@ -28,7 +29,7 @@ const UserTable: React.FC = () => {
     {
       title: '',
       key: 'checkbox',
-      render: (_, user) => <Checkbox />,
+      render: () => <Checkbox />,
     },
     { title: 'ID', dataIndex: '_id', key: '_id' },
     { title: 'Имя', dataIndex: 'name', key: 'name' },
@@ -65,11 +66,11 @@ const UserTable: React.FC = () => {
     },
   ];
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string | undefined) => {
     navigate(`edit/${id}`);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | undefined) => {
     try {
       await deleteUser(id).unwrap();
       dispatch(deleteUserAction(id));
@@ -84,7 +85,7 @@ const UserTable: React.FC = () => {
       <div className="flex justify-center">
         <span className="font-bold text-xl">Here you can see UserList</span>
       </div>
-      <AddUserForm />
+      <AddUserForm   onClose={() => {}}/>
       <Table dataSource={users} columns={columns} className="mt-10" rowKey="id" />
     </div>
   );

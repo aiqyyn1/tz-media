@@ -1,25 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
-export interface User {
-  id?: number;
-  name: string;
-  username: string;
-  email: string;
-  address: {
-    street?: string;
-    suite?: string;
-    city: string;
-    zipcode?: string;
-  };
-  phone: { label: number; value: string }[];
-  website?: string;
-  company?: {
-    name?: string;
-    catchPhrase?: string;
-    bs?: string;
-  };
-}
-
+import { User } from '../types/User';
 export const userApi = createApi({
   reducerPath: 'userApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:3001' }),
@@ -27,7 +7,7 @@ export const userApi = createApi({
     getUsers: builder.query<User[], void>({
       query: () => 'users',
     }),
-    deleteUser: builder.mutation<void, number>({
+    deleteUser: builder.mutation<void, string | undefined>({
       query: (id) => ({
         url: `users/${id}`,
         method: 'DELETE',
@@ -37,11 +17,18 @@ export const userApi = createApi({
       query: (user) => ({
         url: 'users',
         method: 'POST',
-        body:user
+        body: user,
       }),
     }),
     getUserById: builder.query<User, string>({
       query: (id) => `users/${id}`,
+    }),
+    changeById: builder.mutation({
+      query: ({ user, id }) => ({
+        url: `users/${id}`,
+        method: 'PUT',
+        body: user,
+      }),
     }),
   }),
 });
@@ -51,4 +38,5 @@ export const {
   useDeleteUserMutation,
   useCreateUserMutation,
   useGetUserByIdQuery,
+  useChangeByIdMutation,
 } = userApi;
